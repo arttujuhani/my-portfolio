@@ -1,12 +1,19 @@
 "use client";
 
+import React from "react";
+
 export default function ContactButton() {
+  const handleClick = () => {
+    window.location.href =
+      "mailto:your.email@example.com?subject=Contact%20from%20Portfolio";
+  };
+
   return (
     <button
-      className="rounded-full bg-blue-600 px-6 py-3 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-      onClick={() => alert("Contact button clicked!")}
+      onClick={handleClick}
+      className="bg-[color:var(--color-primary)] hover:bg-[color:var(--color-accent)] text-[color:var(--color-dark)] font-heading font-medium py-3 px-8 rounded-full transition-transform transform hover:scale-105"
     >
-      Contact Us
+      Contact Me
     </button>
   );
 }
