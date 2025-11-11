@@ -1,25 +1,17 @@
-import HomeHero from "../components/HomeHero";
+import ParticleName from "../components/ParticleName";
 
-export default function Home() {
+export default function HomePage() {
   return (
-    <main className="relative flex items-center justify-center h-screen w-full overflow-hidden">
-      {/* Background video */}
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        className="absolute top-0 left-0 w-full h-full object-cover"
-      >
-        <source src="/hero.mp4" type="video/mp4" />
-        Your browser does not support the video tag.
-      </video>
+    <main className="relative min-h-screen flex items-center justify-center bg-black text-white overflow-hidden">
+      <div className="absolute inset-0">
+        <ParticleName />
+      </div>
 
-      {/* Dark overlay */}
-      <div className="absolute inset-0 bg-[color:var(--color-dark)]/50" />
-
-      {/* Animated Hero Section */}
-      <HomeHero />
+      <div className="relative z-10 text-center">
+        <h2 className="text-lg md:text-2xl text-gray-400 mt-8">
+          Energy Systems & GIS Specialist
+        </h2>
+      </div>
     </main>
   );
 }
