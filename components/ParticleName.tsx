@@ -15,6 +15,8 @@ declare namespace PIXI {
         renderer: Renderer;
         view: HTMLCanvasElement;
         screen: { width: number; height: number };
+        // Added optional resize method declaration for safety
+        resize?: () => void; 
         destroy(removeView?: boolean, stageOptions?: any): void;
     }
     export interface Container {
@@ -145,7 +147,7 @@ const ParticleName = () => {
     app.stage.removeChildren();
 
     const particles: Particle[] = [];
-    const gap = 5;
+    const gap = 3; // DECREASED FROM 5 TO 3 FOR MORE PARTICLES
     const startX = bounds.x;
     const startY = bounds.y;
 
@@ -292,7 +294,11 @@ const ParticleName = () => {
         }
         // Debounce particle recalculation for 250ms
         resizeTimeout = window.setTimeout(() => {
-            // Re-create particles to adjust font size and position for new screen size
+            // 1. Explicitly resize the PIXI application to update its screen dimensions
+            if (app.resize) {
+                app.resize();
+            }
+            // 2. Re-create particles using the new, correct screen dimensions
             createParticles(app);
         }, 250);
       };
