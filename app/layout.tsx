@@ -52,11 +52,14 @@ export default function RootLayout({
           </div>
         </nav>
 
-        <main className="pt-20">{children}</main>
+        <main className="relative min-h-screen">{children}</main>
 
-        <footer className="border-t border-white/10 mt-20 py-8 text-center text-sm text-gray-400">
-          © {new Date().getFullYear()} My Portfolio. All rights reserved.
+
+
+        <footer className="border-t border-white/10 absolute bottom-0 w-full z-20 py-0 text-center text-sm text-gray-400 bg-black/30 backdrop-blur-md">
+          © {new Date().getFullYear()} Arttu Virtanen. All rights reserved.
         </footer>
+
       </body>
     </html>
   );

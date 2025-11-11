@@ -100,7 +100,7 @@ const ParticleName = () => {
     const baseTextStyle = new PIXI.TextStyle({
       fontFamily: "Pristina Regular, system-ui, sans-serif",
       fontSize: dynamicFontSize,
-      fill: 0xffffff,
+      fill: 0x0a565b,
       align: "center",
       fontWeight: "bold",
     });
@@ -174,7 +174,8 @@ const ParticleName = () => {
         if (alpha > 128) {
           const r = 1.25;
           const dot = new PIXI.Graphics();
-          dot.beginFill(0x60a5fa);
+          // --- PARTICLE COLOR: Change the hex code (e.g., 0xFFFFFF for white, 0x00FF00 for green) ---
+          dot.beginFill(0x0a565b); // Changed to Red
           dot.drawCircle(0, 0, r);
           dot.endFill();
 
@@ -253,7 +254,7 @@ const ParticleName = () => {
       setLoading("Initializing...");
       const app = new PixiLib.Application({
         resizeTo: window,
-        backgroundAlpha: 0,
+        backgroundAlpha: 0, // Keep canvas transparent so background image is visible
         antialias: true,
       });
       appRef.current = app;
@@ -359,8 +360,15 @@ const ParticleName = () => {
   return (
     <div
       ref={canvasRef}
-      className="fixed inset-0 w-full h-full overflow-hidden bg-[#0a0a0a]"
-      style={{ zIndex: 0 }}
+      className="fixed inset-0 w-full h-full overflow-hidden"
+      style={{ 
+          zIndex: 0,
+          // --- REPLACE THIS URL WITH YOUR IMAGE PATH ---
+          backgroundImage: `url('/background.jpg')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'fixed', // Keeps the image fixed in the viewport
+      }}
     >
       {!isPixiReady && (
         <div className="absolute inset-0 flex items-center justify-center text-white">
