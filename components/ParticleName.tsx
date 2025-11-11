@@ -52,6 +52,8 @@ declare namespace PIXI {
 // Removed the line 'declare const PIXI: typeof PIXI;' to resolve the 'Duplicate identifier' error.
 
 type Particle = PIXI.Graphics & {
+  x: number;
+  y: number;
   home: { x: number; y: number };
   vx: number;
   vy: number;
@@ -59,11 +61,17 @@ type Particle = PIXI.Graphics & {
 };
 // --- END TYPE DECLARATION FIX ---
 
+declare global {
+  interface Window {
+    PIXI?: typeof PIXI;
+  }
+}
+
 const ParticleName = () => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<PIXI.Application | null>(null);
   const particlesRef = useRef<Particle[]>([]);
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number>(undefined);
   const [isPixiReady, setIsPixiReady] = useState(false);
   const [loading, setLoading] = useState("Loading PIXI.js...");
 
@@ -108,16 +116,20 @@ const ParticleName = () => {
     const imgHeight = Math.ceil(bounds.height);
 
     let pixels: Uint8ClampedArray;
-    let renderTexture: PIXI.RenderTexture | null = null;
+    let renderTexture: PIXI.RenderTexture | undefined = undefined;
 
     try {
       renderTexture = PIXI.RenderTexture.create({ width: imgWidth, height: imgHeight });
-      const matrix = new PIXI.Matrix();
+      const matrix = new (window as any).PIXI.Matrix();
       matrix.tx = -bounds.x;
       matrix.ty = -bounds.y;
 
       app.renderer.render(tempContainer, { renderTexture, transform: matrix });
-      pixels = app.renderer.extract.pixels(renderTexture);
+      if (renderTexture) {
+        pixels = app.renderer.extract.pixels(renderTexture);
+      } else {
+        throw new Error("RenderTexture is undefined");
+      }
     } catch (e) {
       console.error("Pixel extraction failed:", e);
       if (renderTexture) renderTexture.destroy();
@@ -127,7 +139,7 @@ const ParticleName = () => {
       if (renderTexture) renderTexture.destroy();
     }
 
-    app.stage.removeChild(tempContainer);
+    app.stage.removeChildren();
 
     const particles: Particle[] = [];
     const gap = 5;
