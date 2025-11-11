@@ -62,16 +62,16 @@ type Particle = PIXI.Graphics & {
 // --- END TYPE DECLARATION FIX ---
 
 declare global {
-  interface Window {
-    PIXI?: typeof PIXI;
-  }
+  interface Window {
+    PIXI?: typeof PIXI;
+  }
 }
 
 const ParticleName = () => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<PIXI.Application | null>(null);
   const particlesRef = useRef<Particle[]>([]);
-  const animationFrameRef = useRef<number>(undefined);
+  const animationFrameRef = useRef<number | undefined>(undefined);
   const [isPixiReady, setIsPixiReady] = useState(false);
   const [loading, setLoading] = useState("Loading PIXI.js...");
 
@@ -101,7 +101,7 @@ const ParticleName = () => {
     });
 
     const text = new PIXI.Text(textString, textStyle);
-    // @ts-ignore - PIXI V6/V7 uses methods that are not fully typed in simple declaration
+    // @ts-ignore - PIXI V6/V7 uses methods that are not fully typed in simple declaration
     text.anchor.set(0.5); 
     text.position.set(app.screen.width / 2, app.screen.height / 2);
 
@@ -241,15 +241,44 @@ const ParticleName = () => {
         canvasRef.current.appendChild(app.view);
       }
 
-      const handleMouseMove = (event: MouseEvent) => {
-        const rect = app.view.getBoundingClientRect();
-        const resolution = app.renderer.resolution || 1;
-        mousePositionRef.current = {
-          x: (event.clientX - rect.left) * resolution,
-          y: (event.clientY - rect.top) * resolution,
-        };
+      // --- Interaction Handlers ---
+
+      // Function to calculate and update mouse/touch position
+      const handleInteractionMove = (event: MouseEvent | TouchEvent) => {
+        let clientX, clientY;
+
+        if ('touches' in event) {
+            // Handle TouchEvent
+            const touch = event.touches[0];
+            if (!touch) return;
+            clientX = touch.clientX;
+            clientY = touch.clientY;
+        } else {
+            // Handle MouseEvent
+            clientX = (event as MouseEvent).clientX;
+            clientY = (event as MouseEvent).clientY;
+        }
+
+        const rect = app.view.getBoundingClientRect();
+        const resolution = app.renderer.resolution || 1;
+        mousePositionRef.current = {
+          x: (clientX - rect.left) * resolution,
+          y: (clientY - rect.top) * resolution,
+        };
       };
-      app.view.addEventListener("mousemove", handleMouseMove);
+      
+      // Function to reset mouse position when interaction ends (particles fly back home)
+      const handleInteractionEnd = () => {
+        // Move the mouse position far away so particles return home
+        mousePositionRef.current = { x: -9999, y: -9999 };
+      };
+
+      // Add all necessary listeners for desktop and mobile
+      app.view.addEventListener("mousemove", handleInteractionMove as (e: Event) => void);
+      app.view.addEventListener("touchmove", handleInteractionMove as (e: Event) => void);
+      app.view.addEventListener("mouseleave", handleInteractionEnd);
+      app.view.addEventListener("touchend", handleInteractionEnd);
+      app.view.addEventListener("touchcancel", handleInteractionEnd);
 
       createParticles(app);
       animationFrameRef.current = requestAnimationFrame(animate);
@@ -258,7 +287,13 @@ const ParticleName = () => {
       setLoading("");
 
       return () => {
-        app.view.removeEventListener("mousemove", handleMouseMove);
+        // Cleanup all listeners
+        app.view.removeEventListener("mousemove", handleInteractionMove as (e: Event) => void);
+        app.view.removeEventListener("touchmove", handleInteractionMove as (e: Event) => void);
+        app.view.removeEventListener("mouseleave", handleInteractionEnd);
+        app.view.removeEventListener("touchend", handleInteractionEnd);
+        app.view.removeEventListener("touchcancel", handleInteractionEnd);
+
         if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
         app.destroy(true);
       };
