@@ -92,19 +92,35 @@ const ParticleName = () => {
     // Clear existing particles before creating new ones
     app.stage.removeChildren();
     particlesRef.current = [];
+    
+    // --- Responsive Text Logic ---
 
-    const textString = "Arttu Virtanen";
+    // 1. Determine the responsive font size
+    const dynamicFontSize = Math.min(app.screen.width / 5, 140); 
+    const baseTextStyle = new PIXI.TextStyle({
+      fontFamily: "Pristina Regular, system-ui, sans-serif",
+      fontSize: dynamicFontSize,
+      fill: 0xffffff,
+      align: "center",
+      fontWeight: "bold",
+    });
 
-    // Dynamic font sizing based on current screen width to ensure responsiveness
-    const textStyle = new PIXI.TextStyle({
-      fontFamily: "Pristina Regular, system-ui, sans-serif",
-      fontSize: Math.min(app.screen.width / 5, 140), // Use Math.min to cap size on large screens
-      fill: 0xffffff,
-      align: "center",
-      fontWeight: "bold",
-    });
+    let textString = "Arttu Virtanen";
 
-    const text = new PIXI.Text(textString, textStyle);
+    // 2. Measure the width of the single line text
+    const singleLineText = new PIXI.Text(textString, baseTextStyle);
+    const neededWidth = singleLineText.width;
+    singleLineText.destroy(); // Clean up temporary object
+
+    // 3. Conditional Split: If width exceeds 95% of screen width, split into two lines
+    const screenWidth = app.screen.width;
+    if (neededWidth > screenWidth * 0.95) {
+      textString = "Arttu\nVirtanen";
+    }
+    // --- End Responsive Text Logic ---
+
+
+    const text = new PIXI.Text(textString, baseTextStyle);
     // @ts-ignore - PIXI V6/V7 uses methods that are not fully typed in simple declaration
     text.anchor.set(0.5); 
     text.position.set(app.screen.width / 2, app.screen.height / 2);
@@ -147,7 +163,7 @@ const ParticleName = () => {
     app.stage.removeChildren();
 
     const particles: Particle[] = [];
-    const gap = 3; // DECREASED FROM 5 TO 3 FOR MORE PARTICLES
+    const gap = 3; // Particle density gap (kept at 3)
     const startX = bounds.x;
     const startY = bounds.y;
 
