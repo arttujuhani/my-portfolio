@@ -2,16 +2,18 @@ import ParticleName from "../components/ParticleName";
 
 export default function HomePage() {
   return (
-    <main className="relative min-h-screen flex items-center justify-center bg-black text-white overflow-hidden">
-      <div className="absolute inset-0">
-        <ParticleName />
+    <main className="relative w-full h-screen overflow-hidden">
+      <ParticleName />
+
+      {/* overlay content: tagline only, keep z-index above canvas */}
+      <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+        <p className="text-white text-sm md:text-lg opacity-90 pointer-events-none">
+          Energy Systems & GIS Specialist
+        </p>
       </div>
 
-      <div className="relative z-10 text-center">
-        <h2 className="text-lg md:text-2xl text-gray-400 mt-8">
-          Energy Systems & GIS Specialist
-        </h2>
-      </div>
+      {/* Accessible H1 for SEO, visually hidden so not duplicated */}
+      <h1 className="sr-only">Arttu Virtanen — Energy Systems & GIS Specialist</h1>
     </main>
   );
 }

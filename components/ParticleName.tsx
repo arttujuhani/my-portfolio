@@ -7,6 +7,7 @@ const PIXI_CDN = "https://cdnjs.cloudflare.com/ajax/libs/pixi.js/6.5.9/browser/p
 // --- START TYPE DECLARATION FIX ---
 // This declaration block is crucial for fixing the "Cannot find namespace 'PIXI'" error
 // during TypeScript compilation (like when running 'npm run build').
+// This block must stay to provide type definitions when PIXI is loaded via CDN.
 declare namespace PIXI {
     export interface Graphics {}
     export interface Application {
@@ -48,8 +49,7 @@ declare namespace PIXI {
     export const Graphics: any; // Simplified constructor declaration
 }
 
-// Ensure the PIXI namespace is available globally for the components to use the types
-declare const PIXI: typeof PIXI;
+// Removed the line 'declare const PIXI: typeof PIXI;' to resolve the 'Duplicate identifier' error.
 
 type Particle = PIXI.Graphics & {
   home: { x: number; y: number };
