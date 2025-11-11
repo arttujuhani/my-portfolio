@@ -8,7 +8,7 @@ export default function HomeTagline() {
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 1.2, ease: "easeOut" }}
-      className="absolute top-[65%] left-0 w-full flex items-center justify-center z-10 pointer-events-none"
+      className="absolute top-[65%] left-0 w-full flex items-center text-center justify-center z-10 pointer-events-none"
     >
       <motion.p
         whileHover={{ scale: 1.05 }}
