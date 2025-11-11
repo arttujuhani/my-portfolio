@@ -87,14 +87,16 @@ const ParticleName = () => {
   const createParticles = useCallback((app: PIXI.Application) => {
     if (!app?.stage || !app.renderer) return;
 
+    // Clear existing particles before creating new ones
     app.stage.removeChildren();
     particlesRef.current = [];
 
     const textString = "Arttu Virtanen";
 
+    // Dynamic font sizing based on current screen width to ensure responsiveness
     const textStyle = new PIXI.TextStyle({
       fontFamily: "Pristina Regular, system-ui, sans-serif",
-      fontSize: Math.min(app.screen.width / 5, 140),
+      fontSize: Math.min(app.screen.width / 5, 140), // Use Math.min to cap size on large screens
       fill: 0xffffff,
       align: "center",
       fontWeight: "bold",
@@ -139,6 +141,7 @@ const ParticleName = () => {
       if (renderTexture) renderTexture.destroy();
     }
 
+    // Remove the temporary container used to measure the text
     app.stage.removeChildren();
 
     const particles: Particle[] = [];
@@ -279,6 +282,23 @@ const ParticleName = () => {
       app.view.addEventListener("mouseleave", handleInteractionEnd);
       app.view.addEventListener("touchend", handleInteractionEnd);
       app.view.addEventListener("touchcancel", handleInteractionEnd);
+      
+      // --- Responsive Resize Handler ---
+      let resizeTimeout: number | undefined = undefined;
+
+      const handleResize = () => {
+        if (resizeTimeout) {
+            clearTimeout(resizeTimeout);
+        }
+        // Debounce particle recalculation for 250ms
+        resizeTimeout = window.setTimeout(() => {
+            // Re-create particles to adjust font size and position for new screen size
+            createParticles(app);
+        }, 250);
+      };
+
+      window.addEventListener('resize', handleResize);
+      // --- End Responsive Resize Handler ---
 
       createParticles(app);
       animationFrameRef.current = requestAnimationFrame(animate);
@@ -287,7 +307,11 @@ const ParticleName = () => {
       setLoading("");
 
       return () => {
-        // Cleanup all listeners
+        // Cleanup resize listener
+        window.removeEventListener('resize', handleResize);
+        if (resizeTimeout) clearTimeout(resizeTimeout);
+
+        // Cleanup interaction listeners
         app.view.removeEventListener("mousemove", handleInteractionMove as (e: Event) => void);
         app.view.removeEventListener("touchmove", handleInteractionMove as (e: Event) => void);
         app.view.removeEventListener("mouseleave", handleInteractionEnd);
@@ -321,7 +345,7 @@ const ParticleName = () => {
           {loading}
         </div>
       )}
-    </div>
+      </div>
   );
 };
 
