@@ -77,11 +77,15 @@ const ParticleName = () => {
   const [isPixiReady, setIsPixiReady] = useState(false);
   const [loading, setLoading] = useState("Loading PIXI.js...");
 
+  // NEW: Ref to track the state of the left mouse button (button 0)
+  const isMouseDownRef = useRef(false);
+
   // Constants
   const PULL_FORCE = 0.002;
   const DRAG_COEFFICIENT = 0.95;
-  const MOUSE_REPEL_RADIUS = 50;
-  const MOUSE_REPEL_FORCE = -1.5;
+  // Unified interaction constants:
+  const MOUSE_INTERACTION_RADIUS = 50; 
+  const MOUSE_INTERACTION_STRENGTH = 1.5; 
 
   const mousePositionRef = useRef({ x: 0, y: 0 });
 
@@ -100,7 +104,7 @@ const ParticleName = () => {
     const baseTextStyle = new PIXI.TextStyle({
       fontFamily: "Pristina Regular, system-ui, sans-serif",
       fontSize: dynamicFontSize,
-      fill: 0x0a565b,
+      fill: 0xffffff,
       align: "center",
       fontWeight: "bold",
     });
@@ -175,7 +179,7 @@ const ParticleName = () => {
           const r = 1.25;
           const dot = new PIXI.Graphics();
           // --- PARTICLE COLOR: Change the hex code (e.g., 0xFFFFFF for white, 0x00FF00 for green) ---
-          dot.beginFill(0x0a565b); // Changed to Red
+          dot.beginFill(0x0a565b); // Current color: Red
           dot.drawCircle(0, 0, r);
           dot.endFill();
 
@@ -202,6 +206,7 @@ const ParticleName = () => {
   const animate = useCallback(() => {
     const particles = particlesRef.current;
     const mousePos = mousePositionRef.current;
+    const isMouseDown = isMouseDownRef.current; // Read the current mouse button state
 
     for (const p of particles) {
       const dx_home = p.home.x - p.x;
@@ -215,11 +220,24 @@ const ParticleName = () => {
       const dy_mouse = p.y - mousePos.y;
       const distSq = dx_mouse * dx_mouse + dy_mouse * dy_mouse;
 
-      if (distSq < MOUSE_REPEL_RADIUS * MOUSE_REPEL_RADIUS) {
+      if (distSq < MOUSE_INTERACTION_RADIUS * MOUSE_INTERACTION_RADIUS) {
         const dist = Math.sqrt(distSq);
-        const strength = MOUSE_REPEL_FORCE * (1 - dist / MOUSE_REPEL_RADIUS);
-        repelForceX = (dx_mouse / dist) * strength;
-        repelForceY = (dy_mouse / dist) * strength;
+        
+        // Calculate the magnitude of acceleration, which is stronger closer to the cursor
+        const strength = MOUSE_INTERACTION_STRENGTH * (1 - dist / MOUSE_INTERACTION_RADIUS);
+        
+        const normalizedX = dx_mouse / dist;
+        const normalizedY = dy_mouse / dist;
+
+        if (isMouseDown) {
+          // Pulling (Attraction): Force TOWARDS the mouse (opposite of the vector from mouse to particle)
+          repelForceX = -normalizedX * strength;
+          repelForceY = -normalizedY * strength;
+        } else {
+          // Pushing (Repulsion): Force AWAY from the mouse (same direction as the vector from mouse to particle)
+          repelForceX = normalizedX * strength;
+          repelForceY = normalizedY * strength;
+        }
       }
 
       p.vx += pullForceX + repelForceX;
@@ -232,7 +250,7 @@ const ParticleName = () => {
 
     animationFrameRef.current = requestAnimationFrame(animate);
     appRef.current?.renderer.render(appRef.current.stage);
-  }, [PULL_FORCE, DRAG_COEFFICIENT, MOUSE_REPEL_RADIUS, MOUSE_REPEL_FORCE]);
+  }, [PULL_FORCE, DRAG_COEFFICIENT, MOUSE_INTERACTION_RADIUS, MOUSE_INTERACTION_STRENGTH]);
 
   // === PIXI initialization ===
   useEffect(() => {
@@ -244,9 +262,9 @@ const ParticleName = () => {
         }
         const script = document.createElement("script");
         script.src = PIXI_CDN;
+        document.head.appendChild(script);
         script.onload = () => resolve(window.PIXI);
         script.onerror = reject;
-        document.head.appendChild(script);
       });
     };
 
@@ -294,6 +312,20 @@ const ParticleName = () => {
         // Move the mouse position far away so particles return home
         mousePositionRef.current = { x: -9999, y: -9999 };
       };
+      
+      // NEW: Handlers to track mouse button state
+      const handleMouseDown = (event: MouseEvent) => {
+          if (event.button === 0) { // Check for Left Mouse Button
+              isMouseDownRef.current = true;
+          }
+      };
+
+      const handleMouseUp = (event: MouseEvent) => {
+          if (event.button === 0) { // Check for Left Mouse Button
+              isMouseDownRef.current = false;
+          }
+      };
+
 
       // Add all necessary listeners for desktop and mobile
       app.view.addEventListener("mousemove", handleInteractionMove as (e: Event) => void);
@@ -301,6 +333,10 @@ const ParticleName = () => {
       app.view.addEventListener("mouseleave", handleInteractionEnd);
       app.view.addEventListener("touchend", handleInteractionEnd);
       app.view.addEventListener("touchcancel", handleInteractionEnd);
+      
+      // ADD MOUSE BUTTON LISTENERS
+      app.view.addEventListener("mousedown", handleMouseDown as (e: Event) => void);
+      app.view.addEventListener("mouseup", handleMouseUp as (e: Event) => void);
       
       // --- Responsive Resize Handler ---
       let resizeTimeout: number | undefined = undefined;
@@ -340,6 +376,11 @@ const ParticleName = () => {
         app.view.removeEventListener("mouseleave", handleInteractionEnd);
         app.view.removeEventListener("touchend", handleInteractionEnd);
         app.view.removeEventListener("touchcancel", handleInteractionEnd);
+        
+        // Remove NEW mouse button listeners
+        app.view.removeEventListener("mousedown", handleMouseDown as (e: Event) => void);
+        app.view.removeEventListener("mouseup", handleMouseUp as (e: Event) => void);
+
 
         if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
         app.destroy(true);
