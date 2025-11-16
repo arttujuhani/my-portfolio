@@ -271,7 +271,7 @@ const ParticleName = () => {
     const initPixi = async (PixiLib: any) => {
       setLoading("Initializing...");
       const app = new PixiLib.Application({
-        resizeTo: window,
+        resizeTo: canvasRef.current || undefined,
         backgroundAlpha: 0, // Keep canvas transparent so background image is visible
         antialias: true,
       });
@@ -401,7 +401,7 @@ const ParticleName = () => {
   return (
     <div
       ref={canvasRef}
-      className="fixed inset-0 w-full h-full overflow-hidden"
+      className="relative w-full h-screen overflow-hidden"
       style={{ 
           zIndex: 0,
           // --- REPLACE THIS URL WITH YOUR IMAGE PATH ---
